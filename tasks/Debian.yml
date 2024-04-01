@@ -1,0 +1,103 @@
+---
+- name: Update ansible_distribution_release if bookworm
+  set_fact:
+    ansible_distribution_release: "buster"
+  when: ansible_distribution_release == "bookworm"
+
+- name: Download the Microsoft GPG key package
+  ansible.builtin.get_url:
+    url: "https://packages.microsoft.com/config/{{ ansible_distribution | lower }}/{{ ansible_distribution_major_version }}/packages-microsoft-prod.deb"
+    dest: /tmp/packages-microsoft-prod.deb
+
+- name: Add preferences for Microsoft repository
+  ansible.builtin.copy:
+    content: |
+      Package: *
+      Pin: origin "packages.microsoft.com"
+      Pin-Priority: 1002
+    dest: /etc/apt/preferences.d/99microsoft-prod.pref
+
+- name: Install the Microsoft GPG key package
+  ansible.builtin.package:
+    deb: /tmp/packages-microsoft-prod.deb
+
+- name: Remove the Microsoft GPG key package
+  ansible.builtin.file:
+    path: /tmp/packages-microsoft-prod.deb
+    state: absent
+
+- name: Import OpenResty GPG public key
+  ansible.builtin.get_url:
+    url: "{{opneresty_key}}"
+    dest: /tmp/openresty_pubkey.gpg
+  register: pubkey_download
+
+- name: Import OpenResty GPG public key
+  ansible.builtin.shell: "{{openresty_gpg_keys}}"
+  when: pubkey_download.changed
+
+- name: Add OpenResty apt repository
+  ansible.builtin.template:
+    src: openresty.list.j2
+    dest: /etc/apt/sources.list.d/openresty.list
+
+- name: Set permissions for OpenResty GPG key
+  ansible.builtin.file:
+    path: /usr/share/keyrings/openresty.gpg
+    mode: '0644'
+
+- name: Add keys
+  apt_key:
+    keyserver: "{{keyserver}}"
+    id: "{{item}}"
+    state: present
+  with_items:
+    - "{{keys}}"
+  become: yes
+
+- name: Add ONLYOFFICE repo
+  apt_repository:
+    repo: "{{item}}"
+    state: present
+  with_items:
+    - "{{onlyoffice_repo}}"
+  become: yes
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  become: yes
+
+- name: Install requirement
+  apt:
+    name: "{{ requirements }}"
+    update_cache: yes
+    state: present
+
+- name: Set up db pwd
+  ansible.builtin.debconf:
+    name: "{{product}}"
+    question: "{{product}}"/db-pwd
+    value: "{{db_pass}}"
+    vtype: password
+
+- name: Set up db user
+  ansible.builtin.debconf:
+    name: "{{product}}"
+    question: "{{product}}"/db-user
+    value: "{{ db_user }}"
+    vtype: string
+
+- name: Set up db user
+  ansible.builtin.debconf:
+    name: "{{product}}"
+    question: "{{product}}"/db-name
+    value: "{{ db_name }}"
+    vtype: string
+
+- name: Install DocSpace
+  apt:
+    name: "{{ product }}"
+    update_cache: yes
+    state: latest
+  become: yes

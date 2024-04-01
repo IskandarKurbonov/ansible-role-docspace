@@ -1,0 +1,56 @@
+---
+
+- name: Install prerequisites packages
+  ansible.builtin.yum:
+    name: "{{ pre_req }}"
+    state: present
+
+- name: Download and install EPEL repository
+  ansible.builtin.package:
+    name: "{{ epel_repo_url }}"
+    state: present
+    disable_gpg_check: yes
+
+- name: Download and install Remi repository
+  ansible.builtin.package:
+    name: "{{ remi_repo_url }}"
+    state: present
+    disable_gpg_check: yes
+
+- name: Download and install RPM Fusion repository
+  ansible.builtin.package:
+    name: "{{ rpm_fusion_url }}"
+    state: present
+    disable_gpg_check: yes
+
+- name: Import OpenResty repository GPG key
+  ansible.builtin.shell: |
+      rpm --import "{{ openresty_key }}"
+      OPENRESTY_REPO_FILE=$( [[ "{{ansible_distribution_major_version}}" -ge 9 ]] && echo "openresty2.repo" || echo "openresty.repo" )
+      curl -o /etc/yum.repos.d/openresty.repo "https://openresty.org/package/centos/${OPENRESTY_REPO_FILE}"
+
+- name: Install required packages
+  ansible.builtin.yum:
+    name: "{{ require_packages }}"
+    state: present
+    enablerepo:
+      - remi
+      - powertools
+    disable_gpg_check: yes
+
+- name: Semanage permissive
+  ansible.builtin.shell: semanage permissive -a httpd_t
+
+- name: Install onlyoffice repo
+  ansible.builtin.package:
+    name: "{{ onlyoffice_repo }}"
+    state: present
+    disable_gpg_check: yes
+
+- name: Install docsapce
+  ansible.builtin.yum:
+    name: docspace
+    state: present
+
+- name: Run docsapce-configuration
+  ansible.builtin.shell: "{{docspace_conf}}"

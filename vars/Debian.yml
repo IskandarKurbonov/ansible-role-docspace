@@ -1,0 +1,34 @@
+---
+keyserver: "keyserver.ubuntu.com"
+
+keys:
+  - CB2DE8E5
+  - 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+
+onlyoffice_repo: "deb http://download.onlyoffice.com/repo/debian squeeze main"
+mysql_repo: "https://repo.mysql.com"
+uk_repo: "deb http://ftp.uk.debian.org/debian/ {{ ansible_distribution_release }} main contrib"
+uk_repo_src: "deb-src http://ftp.uk.debian.org/debian/ {{ ansible_distribution_release }} main contrib"
+nginx_repo: "deb [signed-by=/usr/share/keyrings/nginx.gpg] http://nginx.org/packages/{{ ansible_distribution | lower }}/ {{ansible_distribution_release }} nginx"
+nginx_key: "http://nginx.org/keys/nginx_signing.key"
+openresty_key: "https://openresty.org/package/pubkey.gpg"
+openresty_repo: "deb [signed-by=/usr/share/keyrings/openresty.gpg] http://openresty.org/package/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} openresty"
+redis_repo: "deb [signed-by=/usr/share/keyrings/redis.gpg] https://packages.redis.io/deb {{ ansible_distribution_release }} main"
+redis_key: "https://packages.redis.io/gpg"
+microsoft_repo: ""https://packages.microsoft.com/config/{{ ansible_distribution | lower }}/{{ ansible_distribution_major_version }}/packages-microsoft-prod.deb""
+openresty_gpg_key: "gpg --no-default-keyring --keyring gnupg-ring:/usr/share/keyrings/openresty.gpg --import /tmp/openresty_pubkey.gpg"
+
+pre_req:
+  - apt-transport-https
+  - locales
+  - software-properties-common
+
+requirements:
+  - expect
+  - nano
+  - nodejs
+  - gcc
+  - make
+  - dotnet-sdk-8.0
+  - redis-server
+  - ffmpeg

@@ -1,0 +1,27 @@
+---
+- name: Converge
+  hosts: hosts
+  pre_tasks:
+    - name: Update packages
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+      when: ansible_os_family == 'RedHat'
+
+  vars:
+    ds_port: "8083"
+    elasticsearch_package: "{{ 'elasticsearch-7.16.3-1' if ansible_os_family == 'RedHat' else 'elasticsearch=7.16.3' }}"
+    postgresql_databases:
+        - name: onlyoffice
+    postgresql_users:
+        - name: onlyoffice
+          password: onlyoffice
+    erlang_version: 25.3.2.9
+
+  roles:
+      - geerlingguy.nodejs
+      - ONLYOFFICE.rabbitmq
+      - geerlingguy.elasticsearch
+      - geerlingguy.postgresql
+      - ONLYOFFICE.documentserver
+      - ONLYOFFICE.docspace

@@ -1,0 +1,16 @@
+mysql_repo: "https://repo.mysql.com"
+mysql_community_release: "mysql80-community-release-el"
+
+mysql_packages_rpm:
+  - mysql-community-server
+  - mysql-community-client
+  - python3-PyMySQL
+
+mysql_packages_deb:
+  - mysql-server
+  - mysql-client
+  - python3-mysqldb
+
+mysql: mysql-apt-config
+mysql_community: mysql-community-server
+mysql_server: mysql-server

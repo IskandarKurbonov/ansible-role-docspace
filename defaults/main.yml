@@ -1,0 +1,20 @@
+---
+### docspace configs ###
+
+control_panel_port: 8082
+
+db_host: "localhost"
+db_user: "onlyoffice"
+db_pass: "P@ssw0rd"
+db_name: "onlyoffice"
+root_password: "P@ssword"
+
+### rabbitmq configs ###
+
+rabbitmq_host: "localhost"
+rabbitmq_user: "guest"
+rabbitmq_pwd: "guest"
+
+### redis configs ###
+
+redis_host: "localhost"

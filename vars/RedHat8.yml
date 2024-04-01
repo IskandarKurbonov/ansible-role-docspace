@@ -1,0 +1,21 @@
+---
+epel_repo_url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ansible_distribution_major_version}}.noarch.rpm"
+remi_repo_url: "http://rpms.remirepo.net/enterprise/remi-release-{{ansible_distribution_major_version}}.rpm"
+rpm_fusion_url: "https://download1.rpmfusion.org/free/el/rpmfusion-free-release-{{ansible_distribution_major_version}}.noarch.rpm"
+openresty_key: "https://openresty.org/package/pubkey.gpg"
+onlyoffice_repo: "https://download.onlyoffice.com/repo/centos/main/noarch/onlyoffice-repo.noarch.rpm"
+
+docspace_conf: "{{product}}-configuration -mysqlh {{db_host}} -mysqld {{db_name}} -mysqlu {{db_user}} -mysqlp {{db_pass}}"
+
+pre_req:
+  - yum-utils
+  - dnf
+
+require_packages:
+  - epel-release
+  - python3
+  - dotnet-sdk-8.0
+  - redis
+  - SDL2
+  - expect
+  - ffmpeg

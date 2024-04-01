@@ -1,0 +1,131 @@
+---
+- name: Perform MySQL setup on RedHat
+  block:
+    - name: Install MySQL repo RedHat
+      ansible.builtin.shell: |
+        dnf remove -y @mysql && dnf module -y reset mysql && dnf module -y disable mysql
+        MYSQL_REPO_VERSION=$(curl "{{mysql_repo}}" | grep -oP "{{mysql_community_release}}{{ansible_distribution_major_version}}-\K.*" | grep -o '^[^.]*' | sort -n | tail -n1)
+        yum localinstall -y "{{mysql_repo}}/{{mysql_community_release}}{{ansible_distribution_major_version}}"-${MYSQL_REPO_VERSION}.noarch.rpm || true
+
+    - name: Install MySQL community packages
+      ansible.builtin.yum:
+        name: "{{mysql_packages_rpm}}"
+        state: present
+
+    - name: Restart MySQL
+      ansible.builtin.service:
+        name: mysqld
+        state: started
+
+    - name: Extract temporary password from MySQL log
+      shell: "grep 'A temporary password is generated for root@localhost:' /var/log/mysqld.log | awk '{print $NF}'"
+      register: temp_password_output
+
+    - name: Set temporary password variable
+      set_fact:
+        MYSQL_TEMPORARY_PASSWORD: "{{ temp_password_output.stdout }}"
+
+    - name: Change MySQL root password
+      ansible.builtin.shell: |
+        mysql -uroot --connect-expired-password -p"{{MYSQL_TEMPORARY_PASSWORD}}" -Dmysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '{{root_password}}';"
+  when: ansible_os_family == "RedHat"
+
+- name: Perform MySQL setup on Debian
+  block:
+    - name: Install MySQL repo Debian
+      ansible.builtin.shell: |
+        MYSQL_REPO_VERSION=$(curl "{{mysql_repo}}" | grep -oP 'mysql-apt-config_\K.*' | grep -o '^[^_]*' | sort --version-sort --field-separator=. | tail -n1)
+        MYSQL_PACKAGE_NAME="mysql-apt-config_${MYSQL_REPO_VERSION}_all.deb"
+        curl -OL "{{mysql_repo}}"/${MYSQL_PACKAGE_NAME}
+        DEBIAN_FRONTEND=noninteractive dpkg -i ${MYSQL_PACKAGE_NAME}
+
+    - name: Set up repo codename
+      ansible.builtin.debconf:
+        name: "{{mysql}}"
+        question: "{{mysql}}"/repo-codename
+        value: "{{ansible_distribution_release}}"
+        vtype: string
+
+    - name: Set up repo-distro
+      ansible.builtin.debconf:
+        name: "{{mysql}}"
+        question: "{{mysql}}"/repo-distro
+        value: "{{ansible_distribution}}"
+        vtype: string
+
+    - name: Set up server
+      ansible.builtin.debconf:
+        name: "{{mysql}}"
+        question: "{{mysql}}"/select-server
+        value: "mysql-8.0"
+        vtype: string
+
+    - name: Set up db root pass
+      ansible.builtin.debconf:
+        name: "{{mysql_community}}"
+        question: "{{mysql_community}}"/root-pass
+        value: "{{ db_pass }}"
+        vtype: password    
+
+    - name: Set up db re-root-pass
+      ansible.builtin.debconf:
+        name: "{{mysql_community}}"
+        question: "{{mysql_community}}"/re-root-pass
+        value: "{{ db_pass }}"
+        vtype: password
+
+    - name: Set up db auth-override
+      ansible.builtin.debconf:
+        name: "{{mysql_community}}"
+        question: "{{mysql-server}}"/default-auth-override
+        value: "Use Strong Password Encryption (RECOMMENDED)"
+        vtype: string
+
+    - name: Set up db root password
+      ansible.builtin.debconf:
+        name: "{{mysql-server}}-8.0"
+        question: "{{mysql-server}}"/root_password
+        value: "{{ db_pass }}"
+        vtype: password
+
+    - name: Set up db root_password_again
+      ansible.builtin.debconf:
+        name: "{{mysql_server}}-8.0"
+        question: "{{mysql_server}}"/root_password_again
+        value: "{{ db_pass }}"
+        vtype: password
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      become: yes
+
+    - name: Install MySQL packages
+      apt:
+        name: "{{mysql_packages_deb}}"
+        state: present
+  when: ansible_os_family == "Debian"
+
+- name: Create MySQL user 'onlyoffice'
+  mysql_user:
+    login_user: root
+    login_password: "{{root_password}}"
+    name: "{{db_user}}"
+    password: "{{db_pass}}"
+    host: "{{db_host}}"
+    priv: "*.*:ALL"
+
+- name: Create MySQL database 'onlyoffice'
+  mysql_db:
+    login_user: root
+    login_password: "{{root_password}}"
+    name: "{{db_name}}"
+
+- name: Grant privileges to 'onlyoffice' user on 'onlyoffice' database
+  mysql_user:
+    login_user: root
+    login_password: "{{root_password}}"
+    name: "{{db_name}}"
+    priv: "{{db_user}}.*:ALL"
+    host: "{{db_host}}"
+    state: present
