@@ -18,3 +18,4 @@ rabbitmq_pwd: "guest"
 ### redis configs ###
 
 redis_host: "localhost"
+

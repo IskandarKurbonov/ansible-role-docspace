@@ -14,3 +14,4 @@ mysql_packages_deb:
 mysql: mysql-apt-config
 mysql_community: mysql-community-server
 mysql_server: mysql-server
+
