@@ -1,16 +1,16 @@
 ---
 - name: Include configure database variables
-  include_vars: "configure_db.yml"
+  ansible.builtin.include_vars: "configure_db.yml"
 
 - name: Include configure database tasks
-  include_tasks: "configure_db.yml"
+  ansible.builtin.nclude_tasks: "configure_db.yml"
 
 - name: Include Debian variables
-  include_vars: "{{ ansible_os_family }}.yml"
+  ansible.builtin.nclude_vars: "{{ ansible_os_family }}.yml"
   when: ansible_os_family == "Debian"
   
 - name: Include Debian tasks
-  include_tasks: "{{ ansible_os_family }}.yml"
+  ansible.builtin.include_tasks: "{{ ansible_os_family }}.yml"
   when: ansible_os_family == "Debian"
 
 - name: Include Centos variables
