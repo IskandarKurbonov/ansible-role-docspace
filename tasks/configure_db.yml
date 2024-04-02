@@ -27,7 +27,7 @@
 
     - name: Change MySQL root password
       ansible.builtin.shell: |
-        mysql -uroot --connect-expired-password -p"{{MYSQL_TEMPORARY_PASSWORD}}" -Dmysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '{{root_password}}';"
+        mysql -uroot --connect-expired-password -p"{{MYSQL_TEMPORARY_PASSWORD}}" -Dmysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '{{db_pass}}';"
   when: ansible_os_family == "RedHat"
 
 - name: Perform MySQL setup on Debian
@@ -109,7 +109,7 @@
 - name: Create MySQL user 'onlyoffice'
   mysql_user:
     login_user: root
-    login_password: "{{root_password}}"
+    login_password: "{{db_pass}}"
     name: "{{db_user}}"
     password: "{{db_pass}}"
     host: "{{db_host}}"
@@ -118,13 +118,13 @@
 - name: Create MySQL database 'onlyoffice'
   mysql_db:
     login_user: root
-    login_password: "{{root_password}}"
+    login_password: "{{db_pass}}"
     name: "{{db_name}}"
 
 - name: Grant privileges to 'onlyoffice' user on 'onlyoffice' database
   mysql_user:
     login_user: root
-    login_password: "{{root_password}}"
+    login_password: "{{db_pass}}"
     name: "{{db_name}}"
     priv: "{{db_user}}.*:ALL"
     host: "{{db_host}}"
