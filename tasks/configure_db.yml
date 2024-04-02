@@ -1,6 +1,11 @@
 ---
 - name: Perform MySQL setup on RedHat
   block:
+    - name: Update packages
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+
     - name: Install MySQL repo RedHat
       ansible.builtin.shell: |
         dnf remove -y @mysql && dnf module -y reset mysql && dnf module -y disable mysql
