@@ -1,6 +1,6 @@
 # Ansible Role: ONLYOFFICE DocSpace
 Installs and configures ONLYOFFICE DocSpace on Debian/Ubuntu and RedHat servers
-#
+
 ## Requirements
 
 Role requires nginx, nodejs 12, MYSQL-server, Elasticsearch 7.16, OpenResty, ONLYOFFICE DocumentServer in the system or network. Also this role requires root access, so either run it in a playbook with a global `become: yes`, or invoke the role in your playbook like
